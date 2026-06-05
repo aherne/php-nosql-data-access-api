@@ -11,7 +11,7 @@ use Lucinda\NoSQL\Vendor\Valkey\DataSource as ValkeyDataSource;
  * Reads server tags from XML into DataSource objects and injects latter into ConnectionSingleton/ConnectionFactory classes
  * to be used in querying later on
  */
-class Wrapper
+final class Wrapper
 {
     /**
      * Binds NoSQL Data Access API to XML based on development environment and sets DataSource for later querying

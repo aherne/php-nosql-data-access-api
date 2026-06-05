@@ -5,7 +5,7 @@ namespace Lucinda\NoSQL\Vendor\Valkey;
 /**
  * Encapsulates a data source to use for Valkey connections.
  */
-class DataSource extends \Lucinda\NoSQL\Vendor\Redis\DataSource
+final class DataSource extends \Lucinda\NoSQL\Vendor\Redis\DataSource
 {
     /**
      * Gets driver associated to data source

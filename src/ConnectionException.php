@@ -5,6 +5,6 @@ namespace Lucinda\NoSQL;
 /**
  * Exception thrown when connection to a NoSQL server fails.
  */
-class ConnectionException extends \Exception
+final class ConnectionException extends \Exception
 {
 }

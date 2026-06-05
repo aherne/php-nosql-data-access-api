@@ -8,7 +8,7 @@ use Lucinda\NoSQL\KeyNotFoundException;
 /**
  * Defines APCu implementation of nosql operations.
  */
-class Driver implements \Lucinda\NoSQL\Driver
+final class Driver implements \Lucinda\NoSQL\Driver
 {
     /**
      * Sets value to store that will be accessible by key.

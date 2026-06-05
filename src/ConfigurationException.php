@@ -5,6 +5,6 @@ namespace Lucinda\NoSQL;
 /**
  * Exception thrown when developer misconfigures datasource for a NoSQL provider
  */
-class ConfigurationException extends \Exception
+final class ConfigurationException extends \Exception
 {
 }

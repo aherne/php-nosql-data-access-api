@@ -12,7 +12,7 @@ use Lucinda\NoSQL\Vendor\Memcached\DataSource as MemcachedDataSource;
 /**
  * Defines memcached implementation of nosql operations.
  */
-class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
+final class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
 {
     /**
      * @var \Memcached
