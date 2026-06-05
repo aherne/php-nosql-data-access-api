@@ -2,7 +2,7 @@
     "name": "lucinda/nosql-data-access",
     "type": "library",
     "description": "API abstracting communication with NoSQL key-value store databases through a PDO-like structure",
-    "keywords": ["nosql","driver","redis","couchbase","memcache","memcached","apc","apcu"],
+    "keywords": ["nosql","driver","redis","valkey","memcached","apcu"],
     "homepage": "https://github.com/aherne/php-nosql-data-access-api",
     "license": "MIT",
     "require": {

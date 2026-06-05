@@ -2,12 +2,10 @@
 
 namespace Lucinda\NoSQL;
 
-use Lucinda\NoSQL\Vendor\APC\DataSource as APCDataSource;
 use Lucinda\NoSQL\Vendor\APCu\DataSource as APCuDataSource;
-use Lucinda\NoSQL\Vendor\Couchbase\DataSource as CouchbaseDataSource;
-use Lucinda\NoSQL\Vendor\Memcache\DataSource as MemcacheDataSource;
 use Lucinda\NoSQL\Vendor\Memcached\DataSource as MemcachedDataSource;
 use Lucinda\NoSQL\Vendor\Redis\DataSource as RedisDataSource;
+use Lucinda\NoSQL\Vendor\Valkey\DataSource as ValkeyDataSource;
 
 /**
  * Reads server tags from XML into DataSource objects and injects latter into ConnectionSingleton/ConnectionFactory classes
@@ -57,11 +55,9 @@ class Wrapper
             throw new ConfigurationException("Child tag 'driver' is mandatory for 'server' tags");
         }
         return match ($driver) {
-            "couchbase" => new CouchbaseDataSource($databaseInfo),
-            "memcache" => new MemcacheDataSource($databaseInfo),
             "memcached" => new MemcachedDataSource($databaseInfo),
             "redis" => new RedisDataSource($databaseInfo),
-            "apc" => new APCDataSource(),
+            "valkey" => new ValkeyDataSource($databaseInfo),
             "apcu" => new APCuDataSource(),
             default => throw new ConfigurationException("NoSQL driver not supported: " . $driver)
         };

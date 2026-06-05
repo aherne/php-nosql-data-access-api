@@ -33,34 +33,26 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
         $servers = $this->getServers($dataSource);
         $redis = null;
         if (sizeof($servers)>1) {
-            try {
-                $serverList = array();
-                foreach ($servers as $name=>$port) {
-                    $serverList[] = $name.":".$port;
+            throw new ConfigurationException("Redis driver currently supports only one host");
+        }
+
+        try {
+            $port = reset($servers);
+            $host = key($servers);
+            $redis = new \Redis();
+            if ($dataSource->isPersistent()) {
+                $result = $redis->pconnect($host, $port, (float) $dataSource->getTimeout());
+                if (!$result) {
+                    throw new ConnectionException();
                 }
-                $redis = new \RedisCluster(null, $serverList, (float) $dataSource->getTimeout(), null, $dataSource->isPersistent());
-            } catch (\RedisClusterException $e) {
-                throw new ConnectionException($e->getMessage());
-            }
-        } else {
-            try {
-                $port = reset($servers);
-                $host = key($servers);
-                $redis = new \Redis();
-                if ($dataSource->isPersistent()) {
-                    $result = $redis->pconnect($host, $port, (float) $dataSource->getTimeout());
-                    if (!$result) {
-                        throw new ConnectionException();
-                    }
-                } else {
-                    $result = $redis->connect($host, $port, (float) $dataSource->getTimeout());
-                    if (!$result) {
-                        throw new ConnectionException();
-                    }
+            } else {
+                $result = $redis->connect($host, $port, (float) $dataSource->getTimeout());
+                if (!$result) {
+                    throw new ConnectionException();
                 }
-            } catch (\RedisException $e) {
-                throw new ConnectionException($e->getMessage());
             }
+        } catch (\RedisException $e) {
+            throw new ConnectionException($e->getMessage());
         }
 
         $this->connection = $redis;
@@ -101,7 +93,7 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
         if ($expiration==0) {
             $result = $this->connection->set($key, $value);
         } else {
-            $result = $this->connection->setex($key, $expiration, $value);
+            $result = $this->connection->set($key, $value, ["EX" => $expiration]);
         }
         if (!$result) {
             throw new OperationFailedException($this->connection->getLastError());
@@ -145,7 +137,7 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
      *
      * @param  string  $key    Key based on which counter will be accessible from
      * @param  integer $offset Incrementation step.
-     * @return integer Incremented value (value of offset if key originally did not exist)
+     * @return integer Incremented value
      * @throws OperationFailedException If operation didn't succeed.
      */
     public function increment(string $key, int $offset=1): int
@@ -168,7 +160,7 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
      *
      * @param  string  $key    Key based on which counter will be accessible from
      * @param  integer $offset Decrementation step.
-     * @return integer Decremented value (value of offset if key originally did not exist)
+     * @return integer Decremented value
      * @throws OperationFailedException If operation didn't succeed.
      */
     public function decrement(string $key, int $offset=1): int
@@ -221,7 +213,7 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
     /**
      * Gets a pointer to native wrapped object for advanced operations.
      *
-     * @return \Redis|\RedisCluster
+     * @return \Redis
      */
     public function getDriver()
     {

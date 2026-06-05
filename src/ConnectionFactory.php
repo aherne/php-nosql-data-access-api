@@ -12,14 +12,14 @@ final class ConnectionFactory
      *
      * @var array<string,Driver>
      */
-    private static array $instances;
+    private static array $instances = [];
 
     /**
      * Stores registered data sources.
      *
      * @var array<string,DataSource>
      */
-    private static array $dataSources;
+    private static array $dataSources = [];
 
     /**
      * @var Driver

@@ -12,14 +12,30 @@ class DriverTest
 
     public function __construct()
     {
-        $this->dataSource = new \Lucinda\NoSQL\Vendor\Redis\DataSource(
+        $dataSourceClassName = $this->getDataSourceClassName();
+        $this->dataSource = new $dataSourceClassName(
             \simplexml_load_string(
                 '
-            <server driver="redis" host="127.0.0.1"/>
+            <server driver="'.$this->getDriverName().'" host="127.0.0.1"/>
         '
             )
         );
         $this->object = $this->dataSource->getDriver();
+    }
+
+    protected function getDriverName(): string
+    {
+        return "redis";
+    }
+
+    protected function getDataSourceClassName(): string
+    {
+        return \Lucinda\NoSQL\Vendor\Redis\DataSource::class;
+    }
+
+    protected function getNativeDriverClassName(): string
+    {
+        return \Redis::class;
     }
 
     public function connect()
@@ -80,7 +96,8 @@ class DriverTest
 
     public function getDriver()
     {
-        return new Result($this->object->getDriver() instanceof \Redis);
+        $nativeDriverClassName = $this->getNativeDriverClassName();
+        return new Result($this->object->getDriver() instanceof $nativeDriverClassName);
     }
 
 

@@ -40,8 +40,7 @@ interface Driver
      *
      * @param  string  $key    Key based on which counter will be accessible from
      * @param  integer $offset Incrementation step.
-     * @return integer Incremented value (value of offset if key originally did not exist)
-     * @throws KeyNotFoundException If key doesn't exist in store.
+     * @return integer Incremented value
      * @throws OperationFailedException If operation didn't succeed.
      */
     public function increment(string $key, int $offset = 1): int;
@@ -51,8 +50,7 @@ interface Driver
      *
      * @param  string  $key    Key based on which counter will be accessible from
      * @param  integer $offset Decrementation step.
-     * @return integer Decremented value (value of offset if key originally did not exist)
-     * @throws KeyNotFoundException If key doesn't exist in store.
+     * @return integer Decremented value
      * @throws OperationFailedException If operation didn't succeed.
      */
     public function decrement(string $key, int $offset = 1): int;

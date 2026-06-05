@@ -1,11 +1,11 @@
 <?php
 
-namespace Lucinda\NoSQL\Vendor\APC;
+namespace Lucinda\NoSQL\Vendor\Valkey;
 
 /**
- * Encapsulates a data source that does nothign but identify provider.
+ * Encapsulates a data source to use for Valkey connections.
  */
-class DataSource implements \Lucinda\NoSQL\DataSource
+class DataSource extends \Lucinda\NoSQL\Vendor\Redis\DataSource
 {
     /**
      * Gets driver associated to data source

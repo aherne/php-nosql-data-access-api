@@ -14,7 +14,6 @@ use Lucinda\NoSQL\Vendor\Memcached\DataSource as MemcachedDataSource;
  */
 class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
 {
-    public const PERSISTENT_ID = "pid";
     /**
      * @var \Memcached
      */
@@ -30,8 +29,13 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
     public function connect(DataSource $dataSource): void
     {
         $servers = $this->getServers($dataSource);
-        $memcached = ($dataSource->isPersistent() ? new \Memcached(self::PERSISTENT_ID) : new \Memcached());
+        $memcached = (
+            $dataSource->isPersistent()
+            ? new \Memcached($this->getPersistentId($dataSource))
+            : new \Memcached()
+        );
         $memcached->setOption(\Memcached::OPT_LIBKETAMA_COMPATIBLE, true);
+        $memcached->setOption(\Memcached::OPT_BINARY_PROTOCOL, true);
         if ($dataSource->getTimeout()) {
             $memcached->setOption(\Memcached::OPT_RECV_TIMEOUT, $dataSource->getTimeout());
             $memcached->setOption(\Memcached::OPT_SEND_TIMEOUT, $dataSource->getTimeout());
@@ -40,13 +44,9 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
             foreach ($servers as $host=>$port) {
                 $memcached->addServer($host, $port);
             }
+
             // check connections
-            $stats = $memcached->getStats();
-            foreach ($servers as $host=>$port) {
-                if (empty($stats[$host.":".$port])) {
-                    throw new ConnectionException("Connection to host failed: ".$host.":".$port);
-                }
-            }
+            $this->checkConnections($servers, $memcached);
         }
         $this->connection = $memcached;
     }
@@ -98,7 +98,13 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
     public function contains(string $key): bool
     {
         $this->connection->get($key);
-        return (\Memcached::RES_NOTFOUND == $this->connection->getResultCode() ? false : true);
+        return match ($this->connection->getResultCode()) {
+            \Memcached::RES_SUCCESS => true,
+            \Memcached::RES_NOTFOUND => false,
+            default => throw new OperationFailedException(
+                $this->connection->getResultMessage()
+            ),
+        };
     }
 
     /**
@@ -128,20 +134,15 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
      *
      * @param  string  $key    Key based on which counter will be accessible from
      * @param  integer $offset Incrementation step.
-     * @return integer Incremented value (value of offset if key originally did not exist)
-     * @throws KeyNotFoundException If key doesn't exist in store.
+     * @return integer Incremented value
      * @throws OperationFailedException If operation didn't succeed.
      */
     public function increment(string $key, int $offset = 1): int
     {
-        $result = $this->connection->increment($key, $offset);
+        $result = $this->connection->increment($key, $offset, 1);
         if ($result===false) {
             $resultCode = $this->connection->getResultCode();
-            if (\Memcached::RES_NOTFOUND == $resultCode) {
-                throw new KeyNotFoundException($key);
-            } else {
-                throw new OperationFailedException((string) $resultCode);
-            }
+            throw new OperationFailedException((string) $resultCode);
         }
         return $result;
     }
@@ -151,20 +152,15 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
      *
      * @param  string  $key    Key based on which counter will be accessible from
      * @param  integer $offset Decrementation step.
-     * @return integer Decremented value (value of offset if key originally did not exist)
-     * @throws KeyNotFoundException If key doesn't exist in store.
+     * @return integer Decremented value
      * @throws OperationFailedException If operation didn't succeed.
      */
     public function decrement(string $key, int $offset = 1): int
     {
-        $result = $this->connection->decrement($key, $offset);
+        $result = $this->connection->decrement($key, $offset, 1);
         if ($result===false) {
             $resultCode = $this->connection->getResultCode();
-            if (\Memcached::RES_NOTFOUND == $resultCode) {
-                throw new KeyNotFoundException($key);
-            } else {
-                throw new OperationFailedException((string) $resultCode);
-            }
+            throw new OperationFailedException((string) $resultCode);
         }
         return $result;
     }
@@ -219,5 +215,43 @@ class Driver implements \Lucinda\NoSQL\Driver, \Lucinda\NoSQL\Server
     public function disconnect(): void
     {
         $this->connection->quit();
+    }
+
+    /**
+     * Get persistence unique identifier.
+     * 
+     * @param MemcachedDataSource $dataSource
+     * @return string
+     */
+    private function getPersistentId(MemcachedDataSource $dataSource): string
+    {
+        $servers = [];
+        foreach ($dataSource->getServers() as $host => $port) {
+            $servers[] = $host.":".$port;
+        }
+        return "lucinda_nosql_memcached_".md5(implode(",", $servers));
+    }
+
+    /**
+     * Checks distributed memcached servers if they are alive
+     * 
+     * @param array $servers
+     * @param \Memcached $memcached
+     * @throws ConnectionException
+     * @return void
+     */
+    private function checkConnections(array $servers, \Memcached $memcached): void
+    {
+        $versions = $memcached->getVersion();
+        if ($versions === false) {
+            throw new ConnectionException($memcached->getResultMessage());
+        }
+
+        foreach ($servers as $host => $port) {
+            $server = $host.":".$port;
+            if (empty($versions[$server]) || $versions[$server] === "255.255.255") {
+                throw new ConnectionException("Connection to host failed: ".$server);
+            }
+        }
     }
 }
