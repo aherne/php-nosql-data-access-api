@@ -13,7 +13,7 @@ class WrapperTest
     {
         $results = [];
         try {
-            new Wrapper(\simplexml_load_file(dirname(__DIR__)."/unit-tests.xml"), "local");
+            new Wrapper(\simplexml_load_file(dirname(__DIR__)."/unit-tests.xml"));
             $results[] = new Result(true, "tested wrapping");
         } catch (ConfigurationException $e) {
             $results[] = new Result(false, "tested wrapping");

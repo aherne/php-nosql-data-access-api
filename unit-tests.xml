@@ -12,8 +12,6 @@
         </unit_test>
     </unit_tests>
   <nosql>
-      <local>
-         <server driver="redis" host="127.0.0.1"/>
-      </local>
+    <server driver="redis" host="127.0.0.1"/>
   </nosql>
 </xml>

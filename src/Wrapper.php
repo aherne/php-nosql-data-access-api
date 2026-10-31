@@ -17,12 +17,11 @@ final class Wrapper
      * Binds NoSQL Data Access API to XML based on development environment and sets DataSource for later querying
      *
      * @param  \SimpleXMLElement $xml
-     * @param  string            $developmentEnvironment
      * @throws ConfigurationException If XML is improperly configured.
      */
-    public function __construct(\SimpleXMLElement $xml, string $developmentEnvironment)
+    public function __construct(\SimpleXMLElement $xml)
     {
-        $xml = $xml->nosql->{$developmentEnvironment};
+        $xml = $xml->nosql;
         if (!empty($xml)) {
             if (!$xml->server) {
                 throw new ConfigurationException("Server not set for environment!");

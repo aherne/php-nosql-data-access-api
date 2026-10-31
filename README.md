@@ -34,40 +34,31 @@ API is fully PSR-4 compliant, only requiring PHP8.1+ interpreter, SimpleXML exte
 
 ## Configuration
 
-To configure this API you must have a XML with a **nosql** tag inside:
+To configure this API you must have a XML with a **nosql** tag inside and **server** children:
 
 ```xml
 <nosql>
-	<{ENVIRONMENT}>
-		<server name="..." driver="..." {OPTIONS}/>
-		...
-	</{ENVIRONMENT}>
-	...
+    <server name="..." driver="..." {OPTIONS}/>
+    ...
 </nosql>
 ```
 
 Where:
 
 - **nosql**: holds global connection information for NoSQL vendors used
-    - {ENVIRONMENT}: name of development environment (to be replaced with "local", "dev", "live", etc)
-        - **server**: stores connection information about a single vendor via attributes:
-            - *name*: (optional) unique identifier. Required if multiple nosql vendors are used for same environment!
-            - *driver*: (mandatory) NoSQL vendor name. Supported values: apcu, memcached, redis, valkey
-            - {OPTIONS}: a list of extra attributes necessary to configure respective vendor identified by *driver* above:
-                - *host*: server host name (eg: 127.0.0.1), host name and port (eg: 127.0.0.1:1234) or list of host names and ports separated by commas (eg: 192.168.1.9:1234,192.168.1.10:4567). Required unless *driver* is APCu!
-                - *timeout*: (not recommended) time in seconds by which idle connection is automatically closed. Not supported if *driver* is APCu!
-                - *persistent*: (not recommended) whether or not connections should be persisted across sections (value can be: 0 or 1). Not supported if *driver* is APCu!
+    - **server**: stores connection information about a single vendor via attributes:
+        - *name*: (optional) unique identifier. Required if multiple nosql vendors are used for same environment!
+        - *driver*: (mandatory) NoSQL vendor name. Supported values: apcu, memcached, redis, valkey
+        - {OPTIONS}: a list of extra attributes necessary to configure respective vendor identified by *driver* above:
+            - *host*: server host name (eg: 127.0.0.1), host name and port (eg: 127.0.0.1:1234) or list of host names and ports separated by commas (eg: 192.168.1.9:1234,192.168.1.10:4567). Required unless *driver* is APCu!
+            - *timeout*: (not recommended) time in seconds by which idle connection is automatically closed. Not supported if *driver* is APCu!
+            - *persistent*: (not recommended) whether or not connections should be persisted across sections (value can be: 0 or 1). Not supported if *driver* is APCu!
 
 Example:
 
 ```xml
 <nosql>
-    <local>
-        <server driver="memcached" host="127.0.0.1"/>
-    </local>
-    <live>
-        <server driver="redis" host="127.0.0.1"/>
-    </live>
+    <server driver="redis" host="127.0.0.1"/>
 </nosql>
 ```
 
@@ -76,7 +67,7 @@ Example:
 Once you have completed step above, you need to run this in order to be able to connect and query database(s) later on:
 
 ```php
-new Lucinda\NoSQL\Wrapper(simplexml_load_file(XML_FILE_NAME), DEVELOPMENT_ENVIRONMENT);
+new Lucinda\NoSQL\Wrapper(simplexml_load_file(XML_FILE_NAME));
 ```
 
 This will wrap each **server** tag found for current development environment into [Lucinda\NoSQL\DataSource](https://github.com/aherne/php-nosql-data-access-api/blob/master/src/DataSource.php) objects and inject them statically into [Lucinda\NoSQL\ConnectionFactory](#class-connectionfactory) class.
